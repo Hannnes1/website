@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -e
+
+# Load environment variables from the .env file
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
+
+if [ -z "$REMOTE_PATH" ]; then
+  echo "Error: REMOTE_PATH is not set in the .env file, or the .env file is missing."
+  exit 1
+fi
+
+echo "Copying .html and .css files to $REMOTE_PATH..."
+scp *.html *.css "$REMOTE_PATH"
+
+echo "Files copied successfully!"
