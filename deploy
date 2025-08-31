@@ -12,27 +12,10 @@ if [ -z $REMOTE ]; then
   exit 1
 fi
 
-tmp_path=/tmp/personal-website
+local_path=./
 final_path=/var/www/personal-website
 
-echo 'Copying .html and .css files to $REMOTE...'
-scp *.html *.css $REMOTE:$tmp_path
+echo "Deploying to $REMOTE:$final_path..."
 
-# Clean up any old tmp files and create required directories.
-ssh $REMOTE << EOF
-    set -e
-
-    sudo rm -rf $tmp_path
-    sudo rm -rf $final_path
-
-    mkdir $tmp_path
-    mkdir $final_path
-EOF
-
-scp -r *.html $REMOTE:$tmp_path
-
-ssh $REMOTE << EOF
-    set -e
-
-    sudo cp -r $tmp_path $final_path
-EOF
+rsync -rv --delete --rsync-path="sudo rsync" \
+  $local_path/*.html $local_path/*.css $REMOTE:$final_path
