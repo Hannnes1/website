@@ -7,12 +7,32 @@ if [ -f .env ]; then
   export $(grep -v '^#' .env | xargs)
 fi
 
-if [ -z "$REMOTE_PATH" ]; then
-  echo "Error: REMOTE_PATH is not set in the .env file, or the .env file is missing."
+if [ -z $REMOTE ]; then
+  echo 'Error: REMOTE is not set in the .env file, or the .env file is missing.'
   exit 1
 fi
 
-echo "Copying .html and .css files to $REMOTE_PATH..."
-scp *.html *.css "$REMOTE_PATH"
+tmp_path=/tmp/personal-website
+final_path=/var/www/personal-website
 
-echo "Files copied successfully!"
+echo 'Copying .html and .css files to $REMOTE...'
+scp *.html *.css $REMOTE:$tmp_path
+
+# Clean up any old tmp files and create required directories.
+ssh $REMOTE << EOF
+    set -e
+
+    sudo rm -rf $tmp_path
+    sudo rm -rf $final_path
+
+    mkdir $tmp_path
+    mkdir $final_path
+EOF
+
+scp -r *.html $REMOTE:$tmp_path
+
+ssh $REMOTE << EOF
+    set -e
+
+    sudo cp -r $tmp_path $final_path
+EOF
